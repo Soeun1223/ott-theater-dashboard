@@ -1,18 +1,20 @@
-"""원본 CSV 3개(data/raw)를 정리해서 data/processed에 저장한다.
+"""원본 CSV 2개(data/raw)를 정리해서 data/processed에 저장한다.
 
 실행: python clean_data.py
 
 정리 내용
 - 원본은 CP949 인코딩 → UTF-8로 저장
-- 세 조사의 연령 구간 이름을 하나로 통일 (10대, 20대, ..., 70대 이상)
+- 두 조사의 연령 구간 이름을 하나로 통일 (10대, 20대, ..., 70대 이상)
+  10대는 조사마다 나이 구간이 달라서(15~19세 / 13~19세) 대시보드에서는 쓰지 않는다.
 - KOSIS 표는 '연도 × 항목'이 가로로 펼쳐져 있어서 세로(긴 형태)로 바꿈
 """
 from pathlib import Path
 
 import pandas as pd
 
-RAW = Path("data/raw")
-OUT = Path("data/processed")
+HERE = Path(__file__).parent
+RAW = HERE / "data" / "raw"
+OUT = HERE / "data" / "processed"
 OUT.mkdir(parents=True, exist_ok=True)
 
 AGE_ORDER = ["10대", "20대", "30대", "40대", "50대", "60대", "70대 이상"]
@@ -44,24 +46,6 @@ def clean_movie() -> pd.DataFrame:
     return out.sort_values(["연령대", "연도"]).reset_index(drop=True)
 
 
-def clean_ott() -> pd.DataFrame:
-    """한국미디어패널조사: 연령대별 최근 3개월 OTT 이용 경험률."""
-    raw = pd.read_csv(RAW / "kosis_ott_experience.csv", encoding="cp949", header=[0, 1])
-    raw = raw[raw.iloc[:, 0].str.strip().isin(["전체", "연령"])]
-    age_map = {
-        "소계": "전체", "만10-19세": "10대", "만20-29세": "20대", "만30-39세": "30대",
-        "만40-49세": "40대", "만50-59세": "50대", "만60-69세": "60대", "만70세이상": "70대 이상",
-    }
-    rows = []
-    for _, r in raw.iterrows():
-        label = str(r.iloc[1]).strip()
-        if label not in age_map:  # 만10대미만은 다른 조사와 비교할 수 없어서 제외
-            continue
-        for year in range(2021, 2026):
-            rows.append((age_map[label], year, float(r[(str(year), "이용경험 있음 (%)")])))
-    return pd.DataFrame(rows, columns=["연령대", "연도", "OTT이용률"])
-
-
 def clean_platform() -> pd.DataFrame:
     """한국방송광고진흥공사: 연령대별 OTT 플랫폼 이용률 (긴 형태)."""
     raw = pd.read_csv(RAW / "ott_platform_kobaco.csv", encoding="cp949")
@@ -75,7 +59,7 @@ def clean_platform() -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    for name, df in [("movie", clean_movie()), ("ott", clean_ott()), ("platform", clean_platform())]:
+    for name, df in [("movie", clean_movie()), ("platform", clean_platform())]:
         unknown = set(df["연령대"]) - set(AGE_ORDER) - {"전체"}
         assert not unknown, f"{name}: 연령대 이름이 통일되지 않음 {unknown}"
         df.to_csv(OUT / f"{name}.csv", index=False, encoding="utf-8")
