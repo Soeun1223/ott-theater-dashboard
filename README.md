@@ -4,7 +4,7 @@
 
 **질문**: 코로나 이후 극장에 누가 돌아오지 않았나? 그리고 그들은 OTT로 갔나?
 
-- 배포 URL: (배포 후 추가)
+- 배포 URL: https://ott-theater-dashboard.streamlit.app
 
 ## 데이터
 
@@ -14,7 +14,7 @@
 | 최근 3개월 OTT서비스 이용 경험여부 | 정보통신정책연구원 한국미디어패널조사, [KOSIS](https://kosis.kr/statHtml/statHtml.do?orgId=405&tblId=DT_405001_I095) | 2021~2025 |
 | 성별 연령별 OTT 서비스 이용 비율 | 한국방송광고진흥공사, [공공데이터포털](https://www.data.go.kr/data/15147384/fileData.do) | 2022~2025 |
 
-자세한 집계 기준과 주의점은 [데이터_출처.md](데이터_출처.md)에 있습니다.
+자세한 집계 기준과 주의점은 [sources.md](sources.md)에 있습니다.
 
 ## 파일 구성
 
@@ -31,5 +31,5 @@ requirements.txt  배포용 패키지 목록
 ```bash
 pip install -r requirements.txt
 python clean_data.py   # data/processed가 없을 때만
-streamlit run app.py
+python -m streamlit run app.py
 ```
